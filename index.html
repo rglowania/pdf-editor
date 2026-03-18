@@ -63,6 +63,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 #view-pagenumbers.active{display:flex;}
 #view-compress{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
 #view-compress.active{display:flex;}
+#view-duplex{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+#view-duplex.active{display:flex;}
 
 /* ══ LANDING ══ */
 #view-home{padding:16px 20px 80px;}
@@ -321,6 +323,12 @@ body.in-editor .theme-toggle{display:none;}
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg></div>
       <div class="tool-card-name">PDF <span>verkleinern</span></div>
       <div class="tool-card-desc">Redundante Objekte entfernen und Dateigröße reduzieren</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </div>
+    <div class="tool-card" onclick="openTool('duplex')">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="3" x2="12" y2="21"/><polyline points="9 9 12 6 15 9"/><polyline points="9 15 12 18 15 15"/></svg></div>
+      <div class="tool-card-name">Duplex-<span>Scan</span></div>
+      <div class="tool-card-desc">Vorder- und Rückseiten eines einseitigen Scanners zusammenführen</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
     </div>
   </div>
@@ -616,6 +624,43 @@ body.in-editor .theme-toggle{display:none;}
   </div>
 </div>
 
+<!-- ════════════ DUPLEX ════════════ -->
+<div id="view-duplex">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="goHome()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Zurück</button>
+    <div class="ed-topbar-title">Duplex-<span>Scan</span></div>
+    <div class="ed-topbar-file" id="duplex-filename">—</div>
+    <div class="ed-topbar-right">
+      <button class="btn-dl" id="btn-duplex-dl" onclick="downloadDuplex()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Zusammenführen
+      </button>
+    </div>
+  </div>
+  <div class="tool-view-body">
+    <div class="tool-view-inner">
+      <div class="tv-section">
+        <div class="tv-label">Schritt 1</div>
+        <div class="tv-title">Vorderseiten (ungerade)</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;">Die erste PDF mit den Vorderseiten — Seite 1, 3, 5 … in der richtigen Reihenfolge.</p>
+        <div class="drop-zone-sm" id="duplex-front-dz" onclick="document.getElementById('duplex-front-inp').click()">
+          <input type="file" id="duplex-front-inp" accept=".pdf" style="display:none" onchange="loadDuplexFile('front',this.files[0])">
+          <div class="dz-text" id="duplex-front-text"><strong>Vorderseiten-PDF ablegen</strong><br>oder klicken zum Auswählen</div>
+        </div>
+      </div>
+      <div class="tv-section">
+        <div class="tv-label">Schritt 2</div>
+        <div class="tv-title">Rückseiten (gerade)</div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;">Die zweite PDF mit den Rückseiten — vom Scanner meist in umgekehrter Reihenfolge eingezogen.</p>
+        <div class="drop-zone-sm" id="duplex-back-dz" onclick="document.getElementById('duplex-back-inp').click()">
+          <input type="file" id="duplex-back-inp" accept=".pdf" style="display:none" onchange="loadDuplexFile('back',this.files[0])">
+          <div class="dz-text" id="duplex-back-text"><strong>Rückseiten-PDF ablegen</strong><br>oder klicken zum Auswählen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ COMPRESS ════════════ -->
 <div id="view-compress">
   <div class="ed-topbar">
@@ -734,7 +779,7 @@ const TOGGLE_HTML=`<div style="display:flex;gap:2px;background:var(--surface2);b
   });
 })();
 
-const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress'];
+const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex'];
 function showView(id){
   VIEWS.forEach(v=>{
     const el=document.getElementById(v);if(!el)return;
@@ -789,6 +834,8 @@ function openTool(tool,subtool){
     showView('view-pagenumbers');
   } else if(tool==='compress'){
     showView('view-compress');
+  } else if(tool==='duplex'){
+    showView('view-duplex');
   }
 }
 
@@ -1576,6 +1623,77 @@ function formatBytes(b){
   return (b/1048576).toFixed(2)+' MB';
 }
 
+// ════════════════════════════════════════
+// DUPLEX SCAN
+// ════════════════════════════════════════
+let duplexFront=null,duplexBack=null;
+
+function loadDuplexFile(side,file){
+  if(!file)return;
+  file.arrayBuffer().then(bytes=>{
+    if(side==='front'){
+      duplexFront={bytes,name:file.name};
+      document.getElementById('duplex-front-text').innerHTML=`<strong>${file.name}</strong>`;
+    } else {
+      duplexBack={bytes,name:file.name};
+      document.getElementById('duplex-back-text').innerHTML=`<strong>${file.name}</strong>`;
+    }
+    updateDuplexPreview();
+    document.getElementById('btn-duplex-dl').disabled=!(duplexFront&&duplexBack);
+    if(duplexFront&&duplexBack) document.getElementById('duplex-filename').textContent=duplexFront.name.replace('.pdf','')+'_duplex.pdf';
+  });
+}
+
+['front','back'].forEach(side=>{
+  const dz=document.getElementById(`duplex-${side}-dz`);
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');loadDuplexFile(side,e.dataTransfer.files[0]);});
+});
+
+document.getElementById('duplex-reverse') && document.getElementById('duplex-reverse').addEventListener('change',updateDuplexPreview);
+
+async function updateDuplexPreview(){
+  if(!duplexFront||!duplexBack)return;
+  const reverse=false;
+  try{
+    const frontDoc=await pdfjsLib.getDocument({data:duplexFront.bytes.slice(0)}).promise;
+    const backDoc=await pdfjsLib.getDocument({data:duplexBack.bytes.slice(0)}).promise;
+    const fTotal=frontDoc.numPages,bTotal=backDoc.numPages;
+    const backIdx=Array.from({length:bTotal},(_,i)=>i+1);
+    if(reverse)backIdx.reverse();
+    const pairs=Math.max(fTotal,bTotal);
+    const preview=[];
+    for(let i=0;i<pairs;i++){
+      if(i<fTotal) preview.push(`V${i+1}`);
+      if(i<backIdx.length) preview.push(`R${backIdx[i]}`);
+    }
+    document.getElementById('duplex-preview-text').textContent=preview.join(' → ');
+    document.getElementById('duplex-preview').style.display='block';
+  }catch(e){}
+}
+
+async function downloadDuplex(){
+  if(!duplexFront||!duplexBack)return;
+  showLoading(true,'Seiten werden zusammengeführt…');
+  try{
+    const reverse=false;
+    const frontSrc=await PDFDocument.load(duplexFront.bytes);
+    const backSrc=await PDFDocument.load(duplexBack.bytes);
+    const fTotal=frontSrc.getPageCount(),bTotal=backSrc.getPageCount();
+    const backOrder=Array.from({length:bTotal},(_,i)=>i);
+    if(reverse)backOrder.reverse();
+    const out=await PDFDocument.create();
+    const pairs=Math.max(fTotal,bTotal);
+    for(let i=0;i<pairs;i++){
+      if(i<fTotal){const[p]=await out.copyPages(frontSrc,[i]);out.addPage(p);}
+      if(i<backOrder.length){const[p]=await out.copyPages(backSrc,[backOrder[i]]);out.addPage(p);}
+    }
+    triggerDownload(await out.save(),duplexFront.name.replace(/\.pdf$/i,'')+'_duplex.pdf');
+    toast(`${out.getPageCount()} Seiten zusammengeführt`);
+  }catch(e){alert('Fehler: '+e.message);console.error(e);}
+  finally{showLoading(false);}
+}
 
 let sigDrawing=false,sigCtx=null;
 function openSigModal(){document.getElementById('sig-modal').classList.add('open');initSigDraw();loadSavedSigs();}
