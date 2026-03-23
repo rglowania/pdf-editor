@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root,[data-theme="dark"]{
   --bg:#0c1410;--surface:#13201a;--surface2:#192b22;--border:#213328;
@@ -65,6 +66,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 #view-compress.active{display:flex;}
 #view-duplex{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
 #view-duplex.active{display:flex;}
+#view-pdf2excel{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+#view-pdf2excel.active{display:flex;}
 
 /* ══ LANDING ══ */
 #view-home{padding:16px 20px 80px;}
@@ -329,6 +332,12 @@ body.in-editor .theme-toggle{display:none;}
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="3" x2="12" y2="21"/><polyline points="9 9 12 6 15 9"/><polyline points="9 15 12 18 15 15"/></svg></div>
       <div class="tool-card-name">Duplex-<span>Scan</span></div>
       <div class="tool-card-desc">Vorder- und Rückseiten eines einseitigen Scanners zusammenführen</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </div>
+    <div class="tool-card" onclick="openTool('pdf2excel')">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="8 13 10.5 18 13 13"/><line x1="8" y1="16" x2="13" y2="16"/></svg></div>
+      <div class="tool-card-name">PDF<span>2Excel</span></div>
+      <div class="tool-card-desc">Tabellen aus PDFs extrahieren und als Excel-Datei exportieren</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
     </div>
   </div>
@@ -704,6 +713,44 @@ body.in-editor .theme-toggle{display:none;}
   </div>
 </div>
 
+<!-- ════════════ PDF2EXCEL ════════════ -->
+<div id="view-pdf2excel">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="goHome()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Zurück</button>
+    <div class="ed-topbar-title">PDF<span>2Excel</span></div>
+    <div class="ed-topbar-file" id="p2e-filename">—</div>
+    <div class="ed-topbar-right">
+      <select class="tb-select" id="p2e-page-select" style="display:none" onchange="p2eShowPage(parseInt(this.value))"></select>
+      <button class="btn-dl" id="btn-p2e-dl" onclick="p2eDownload()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Als Excel speichern
+      </button>
+    </div>
+  </div>
+  <div class="tool-view-body" style="flex-direction:column;align-items:stretch;padding:24px;">
+    <div style="max-width:680px;width:100%;margin:0 auto;">
+      <div class="tv-section" id="p2e-upload-section">
+        <div class="tv-label">PDF laden</div>
+        <div class="tv-title">Datei auswählen</div>
+        <div class="drop-zone-sm" id="p2e-dz" onclick="document.getElementById('p2e-inp').click()">
+          <input type="file" id="p2e-inp" accept=".pdf" style="display:none" onchange="p2eHandleFile(this.files[0])">
+          <div class="dz-text" id="p2e-dz-text"><strong>PDF hier ablegen</strong><br>oder klicken zum Auswählen</div>
+        </div>
+      </div>
+      <div id="p2e-warn" style="display:none;background:rgba(180,100,30,0.12);border:1px solid rgba(180,120,30,0.4);border-left:3px solid #c87d2a;padding:16px 20px;margin-bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.8;color:var(--text);position:relative;z-index:1;">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#c87d2a;margin-bottom:6px;">⚠ Gescanntes PDF erkannt</div>
+        Die Textextraktion kann unvollständig oder falsch ausgerichtet sein. Für gescannte PDFs empfiehlt sich ein cloudbasierter OCR-Dienst (Adobe Acrobat, Google Drive, Microsoft 365).
+      </div>
+    </div>
+    <div id="p2e-preview-wrap" style="display:none;flex:1;overflow:auto;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;padding:0 4px;" id="p2e-status"></div>
+      <div style="overflow:auto;">
+        <table id="p2e-table" style="border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:10px;width:100%;"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ SIGNATURE MODAL ════════════ -->
 <div id="sig-modal">
   <div class="sig-box">
@@ -779,7 +826,7 @@ const TOGGLE_HTML=`<div style="display:flex;gap:2px;background:var(--surface2);b
   });
 })();
 
-const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex'];
+const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex','view-pdf2excel'];
 function showView(id){
   VIEWS.forEach(v=>{
     const el=document.getElementById(v);if(!el)return;
@@ -836,6 +883,8 @@ function openTool(tool,subtool){
     showView('view-compress');
   } else if(tool==='duplex'){
     showView('view-duplex');
+  } else if(tool==='pdf2excel'){
+    showView('view-pdf2excel');
   }
 }
 
@@ -1693,6 +1742,142 @@ async function downloadDuplex(){
     toast(`${out.getPageCount()} Seiten zusammengeführt`);
   }catch(e){alert('Fehler: '+e.message);console.error(e);}
   finally{showLoading(false);}
+}
+
+// ════════════════════════════════════════
+// PDF2EXCEL
+// ════════════════════════════════════════
+let p2ePagesData=[],p2eCurrentPage=0,p2eFileName='';
+
+const p2edz=document.getElementById('p2e-dz');
+p2edz.addEventListener('dragover',e=>{e.preventDefault();p2edz.classList.add('over');});
+p2edz.addEventListener('dragleave',()=>p2edz.classList.remove('over'));
+p2edz.addEventListener('drop',e=>{e.preventDefault();p2edz.classList.remove('over');p2eHandleFile(e.dataTransfer.files[0]);});
+
+async function p2eHandleFile(file){
+  if(!file)return;
+  p2eFileName=file.name.replace(/\.pdf$/i,'');
+  document.getElementById('p2e-filename').textContent=file.name;
+  document.getElementById('p2e-dz-text').innerHTML=`<strong>${file.name}</strong><br>wird verarbeitet…`;
+  document.getElementById('p2e-warn').style.display='none';
+  showLoading(true,'Tabellen werden extrahiert…');
+  try{
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    const n=pdf.numPages;
+    p2ePagesData=[];
+    let scanScore=0;
+    for(let p=1;p<=n;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      const items=tc.items||[];
+      // Scan detection: low item count or tiny widths
+      const avgW=items.length?items.reduce((s,i)=>s+(i.width||0),0)/items.length:0;
+      if(items.length<20||avgW<2) scanScore++;
+      p2ePagesData.push(p2eExtractRows(items));
+    }
+    if(scanScore>n/2) document.getElementById('p2e-warn').style.display='block';
+    // Build page selector
+    const sel=document.getElementById('p2e-page-select');
+    sel.innerHTML='';
+    p2ePagesData.forEach((_,i)=>{
+      const opt=document.createElement('option');
+      opt.value=i;opt.textContent=`Seite ${i+1} / ${n}`;
+      sel.appendChild(opt);
+    });
+    sel.style.display=p2ePagesData.length>1?'block':'none';
+    document.getElementById('btn-p2e-dl').disabled=false;
+    document.getElementById('p2e-preview-wrap').style.display='block';
+    p2eShowPage(0);
+    document.getElementById('p2e-dz-text').innerHTML=`<strong>${file.name}</strong><br>${n} Seiten extrahiert`;
+  }catch(e){alert('Fehler: '+e.message);}
+  finally{showLoading(false);}
+}
+
+function p2eExtractRows(items){
+  if(!items.length)return[];
+  // Sort by Y desc then X asc
+  const sorted=[...items].sort((a,b)=>{
+    const ay=Math.round((a.transform[5]||0)/3)*3;
+    const by=Math.round((b.transform[5]||0)/3)*3;
+    return by-ay||a.transform[4]-b.transform[4];
+  });
+  const rows=[];let curY=null,curRow=[];
+  const yTol=4;
+  for(const item of sorted){
+    const y=item.transform[5]||0;
+    const x=item.transform[4]||0;
+    const text=(item.str||'').trim();
+    if(!text)continue;
+    if(curY===null||Math.abs(y-curY)>yTol){
+      if(curRow.length)rows.push(curRow);
+      curRow=[{x,text,w:item.width||0}];
+      curY=y;
+    } else {
+      curRow.push({x,text,w:item.width||0});
+    }
+  }
+  if(curRow.length)rows.push(curRow);
+  // Detect column boundaries via gap analysis
+  const allX=rows.flatMap(r=>r.map(c=>c.x)).sort((a,b)=>a-b);
+  const gaps=[];
+  for(let i=1;i<allX.length;i++) gaps.push(allX[i]-allX[i-1]);
+  const medGap=gaps.length?gaps.sort((a,b)=>a-b)[Math.floor(gaps.length/2)]:10;
+  const colThresh=Math.max(medGap*3,20);
+  // Build column grid
+  const colBounds=[];
+  let prev=allX[0]||0;
+  colBounds.push(prev);
+  for(const x of allX){
+    if(x-prev>colThresh){colBounds.push(x);prev=x;}
+  }
+  const getCol=x=>colBounds.findIndex((b,i)=>x>=b&&(i===colBounds.length-1||x<colBounds[i+1]));
+  const nCols=colBounds.length;
+  return rows.map(row=>{
+    const cells=new Array(nCols).fill('');
+    for(const cell of row){
+      const ci=Math.max(0,getCol(cell.x));
+      cells[ci]=cells[ci]?cells[ci]+' '+cell.text:cell.text;
+    }
+    // strip trailing empty
+    let last=cells.length-1;
+    while(last>0&&!cells[last])last--;
+    return cells.slice(0,last+1);
+  }).filter(r=>r.some(c=>c));
+}
+
+function p2eShowPage(idx){
+  p2eCurrentPage=idx;
+  document.getElementById('p2e-page-select').value=idx;
+  const rows=p2ePagesData[idx]||[];
+  const table=document.getElementById('p2e-table');
+  table.innerHTML='';
+  if(!rows.length){table.innerHTML='<tr><td style="padding:12px;color:var(--text-muted);font-family:\'IBM Plex Mono\',monospace;font-size:10px;">Keine Tabellendaten gefunden.</td></tr>';return;}
+  const maxCols=Math.max(...rows.map(r=>r.length));
+  rows.forEach((row,ri)=>{
+    const tr=document.createElement('tr');
+    tr.style.background=ri%2===0?'var(--surface)':'var(--surface2)';
+    for(let c=0;c<maxCols;c++){
+      const td=document.createElement('td');
+      td.textContent=row[c]||'';
+      td.style.cssText='padding:5px 10px;border:1px solid var(--border);font-family:\'IBM Plex Mono\',monospace;font-size:10px;white-space:nowrap;color:var(--text);';
+      if(ri===0) td.style.fontWeight='500';
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  });
+  document.getElementById('p2e-status').textContent=`Seite ${idx+1} · ${rows.length} Zeilen · ${maxCols} Spalten`;
+}
+
+function p2eDownload(){
+  if(!p2ePagesData.length)return;
+  const wb=XLSX.utils.book_new();
+  p2ePagesData.forEach((rows,i)=>{
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb,ws,`Seite ${i+1}`);
+  });
+  XLSX.writeFile(wb,p2eFileName+'.xlsx');
+  toast('Excel-Datei heruntergeladen');
 }
 
 let sigDrawing=false,sigCtx=null;
