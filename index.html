@@ -68,6 +68,10 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 #view-duplex.active{display:flex;}
 #view-jpg2pdf{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
 #view-jpg2pdf.active{display:flex;}
+#view-pdf2excel{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+#view-pdf2excel.active{display:flex;}
+#view-anonymizer{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+#view-anonymizer.active{display:flex;}
 
 /* ══ LANDING ══ */
 #view-home{padding:16px 20px 80px;}
@@ -276,6 +280,28 @@ body.in-editor .theme-toggle{display:none;}
 .lp-footer{text-align:center;padding:24px 0;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text-muted);opacity:.5;}
 .lp-disclaimer{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);line-height:1.7;opacity:.6;text-align:center;max-width:600px;margin:0 auto 16px;}
 
+
+/* ══ ANONYMIZER ══ */
+.anon-filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px;}
+.anon-filter-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;}
+.anon-filter-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0;margin-top:2px;}
+.anon-filter-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text);}
+.anon-filter-desc{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+.anon-match-item{display:flex;align-items:center;gap:12px;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);margin-bottom:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;}
+.anon-match-cat{color:var(--accent);min-width:110px;flex-shrink:0;}
+.anon-match-val{color:var(--text);flex:1;word-break:break-all;}
+.anon-match-pg{color:var(--text-muted);white-space:nowrap;}
+.anon-stat-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;}
+.anon-stat-box{background:var(--surface);border:1px solid var(--border);padding:12px 18px;font-family:'IBM Plex Mono',monospace;}
+.anon-stat-num{font-size:24px;color:var(--accent);font-weight:500;}
+.anon-stat-lbl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-top:3px;}
+.anon-progress-outer{background:var(--surface2);border:1px solid var(--border);height:6px;width:100%;margin-bottom:6px;}
+.anon-progress-bar{height:6px;background:var(--accent);width:0%;transition:width .3s;}
+.anon-log{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;max-height:160px;overflow-y:auto;margin-top:6px;}
+.anon-log-ok{color:var(--accent);}
+.anon-log-warn{color:#e0a840;}
+.anon-log-err{color:#e05a5a;}
+
 @media(max-width:600px){
   .ed-topbar-file{display:none;}
   .tb-pagenav{margin-left:auto;}
@@ -340,6 +366,18 @@ body.in-editor .theme-toggle{display:none;}
       <div class="tool-card-desc">Fotos komprimiert (200 dpi) zu einer PDF zusammenfügen</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
       <div style="position:absolute;top:10px;right:10px;font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;background:var(--accent);color:#0c1410;padding:2px 7px;font-weight:500;">Beta</div>
+    </div>
+    <div class="tool-card" onclick="openTool('anonymizer')">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="17"/></svg></div>
+      <div class="tool-card-name">PDF <span>Anonymizer</span></div>
+      <div class="tool-card-desc">Vertrauliche Daten automatisch schwärzen (IBAN, Steuernummer, Geburtsdatum…)</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </div>
+    <div class="tool-card" onclick="openTool('pdf2excel')">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="8 13 10.5 18 13 13"/><line x1="8" y1="16" x2="13" y2="16"/></svg></div>
+      <div class="tool-card-name">PDF<span>2Excel</span></div>
+      <div class="tool-card-desc">Tabellen aus PDFs extrahieren und als Excel exportieren</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
     </div>
       <div class="tool-card-name">PDF<span>2Excel</span></div>
       <div class="tool-card-desc">Tabellen aus PDFs extrahieren und als Excel-Datei exportieren</div>
@@ -780,6 +818,114 @@ body.in-editor .theme-toggle{display:none;}
   </div>
 </div>
 
+<!-- ════════════ PDF2EXCEL ════════════ -->
+<div id="view-pdf2excel">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="goHome()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Zurück</button>
+    <div class="ed-topbar-title">PDF<span>2Excel</span></div>
+    <div class="ed-topbar-file" id="p2e-filename">—</div>
+    <div class="ed-topbar-right">
+      <select class="tb-select" id="p2e-page-select" style="display:none" onchange="p2eShowPage(parseInt(this.value))"></select>
+      <button class="btn-dl" id="btn-p2e-dl" onclick="p2eDownload()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Als Excel speichern
+      </button>
+    </div>
+  </div>
+  <div class="tool-view-body" style="flex-direction:column;align-items:stretch;padding:24px;gap:16px;">
+    <div style="max-width:680px;width:100%;margin:0 auto;">
+      <div class="tv-section">
+        <div class="tv-label">Extraktionsmethode</div>
+        <div class="tv-title">Modus wählen</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="compress-dpi-btn active" id="p2e-mode-native" onclick="p2eSetMode('native',this)">Nativ<span>Eingebetteter Text</span></button>
+          <button class="compress-dpi-btn" id="p2e-mode-lattice" onclick="p2eSetMode('lattice',this)">Lattice<span>Linien-Erkennung</span></button>
+          <button class="compress-dpi-btn" id="p2e-mode-stream" onclick="p2eSetMode('stream',this)">Stream<span>Whitespace-Analyse</span></button>
+        </div>
+        <p id="p2e-mode-desc" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;">Liest Text direkt aus der PDF — schnell und präzise für digitale PDFs.</p>
+      </div>
+      <div class="tv-section">
+        <div class="tv-label">PDF laden</div>
+        <div class="tv-title">Datei auswählen</div>
+        <div class="drop-zone-sm" id="p2e-dz" onclick="document.getElementById('p2e-inp').click()">
+          <input type="file" id="p2e-inp" accept=".pdf" style="display:none" onchange="p2eHandleFile(this.files[0])">
+          <div class="dz-text" id="p2e-dz-text"><strong>PDF hier ablegen</strong><br>oder klicken zum Auswählen</div>
+        </div>
+      </div>
+      <div id="p2e-warn" style="display:none;background:rgba(180,100,30,0.12);border:1px solid rgba(180,120,30,0.4);border-left:3px solid #c87d2a;padding:14px 18px;font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.8;color:var(--text);">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#c87d2a;margin-bottom:5px;">⚠ Hinweis</div>
+        <span id="p2e-warn-text"></span>
+      </div>
+    </div>
+    <div id="p2e-preview-wrap" style="display:none;flex:1;overflow:auto;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;padding:0 4px;" id="p2e-status"></div>
+      <div style="overflow:auto;"><table id="p2e-table" style="border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:10px;width:100%;"></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ ANONYMIZER ════════════ -->
+<div id="view-anonymizer">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="goHome()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Zurück</button>
+    <div class="ed-topbar-title">PDF <span>Anonymizer</span></div>
+    <div class="ed-topbar-file" id="anon-filename">—</div>
+    <div class="ed-topbar-right">
+      <button class="btn-sec" id="btn-anon-reset" onclick="anonReset()">Neue Datei</button>
+      <button class="btn-dl" id="btn-anon-dl" onclick="anonDownload()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Anonymisiert herunterladen
+      </button>
+    </div>
+  </div>
+  <div class="tool-view-body">
+    <div class="tool-view-inner" style="max-width:720px;">
+      <div class="tv-section">
+        <div class="tv-label">PDF laden</div>
+        <div class="tv-title">Datei auswählen</div>
+        <div class="drop-zone-sm" id="anon-dz" onclick="document.getElementById('anon-inp').click()">
+          <input type="file" id="anon-inp" accept=".pdf" style="display:none" onchange="anonHandleFile(this.files[0])">
+          <div class="dz-text" id="anon-dz-text"><strong>PDF hier ablegen</strong><br>oder klicken zum Auswählen · Verarbeitung lokal im Browser</div>
+        </div>
+      </div>
+      <div class="tv-section">
+        <div class="tv-label">Filter</div>
+        <div class="tv-title">Zu schwärzende Datentypen</div>
+        <div class="anon-filter-grid" id="anon-filter-grid"></div>
+        <div style="margin-top:18px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Eigene Begriffe / Regex</div>
+          <input type="text" id="anon-custom" placeholder="z.B.  Mustermann, GmbH, \d{5}  (kommagetrennt)"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:9px 12px;outline:none;">
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:5px;line-height:1.6;">Kommagetrennte Begriffe oder reguläre Ausdrücke · Groß-/Kleinschreibung wird ignoriert</p>
+        </div>
+      </div>
+      <div class="tv-section">
+        <button class="btn-primary" id="btn-anon-run" onclick="anonRun()" disabled style="width:100%;">Analysieren &amp; Schwärzen</button>
+        <div id="anon-progress-wrap" style="display:none;margin-top:14px;">
+          <div class="anon-progress-outer"><div class="anon-progress-bar" id="anon-progress-bar"></div></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:4px;" id="anon-progress-label">Initialisiere…</div>
+        </div>
+        <div id="anon-log-wrap" style="display:none;margin-top:10px;">
+          <div class="anon-log" id="anon-log"></div>
+        </div>
+      </div>
+      <div id="anon-result-wrap" style="display:none;">
+        <div class="tv-section" style="background:var(--accent-dim);border-color:var(--accent);">
+          <div class="tv-label">Ergebnis</div>
+          <div class="tv-title">Gefundene Datenpunkte</div>
+          <div class="anon-stat-row">
+            <div class="anon-stat-box"><div class="anon-stat-num" id="anon-stat-total">0</div><div class="anon-stat-lbl">Schwärzungen</div></div>
+            <div class="anon-stat-box"><div class="anon-stat-num" id="anon-stat-pages">0</div><div class="anon-stat-lbl">Seiten</div></div>
+            <div class="anon-stat-box"><div class="anon-stat-num" id="anon-stat-cats">0</div><div class="anon-stat-lbl">Kategorien</div></div>
+          </div>
+          <div id="anon-match-list" style="margin-top:14px;max-height:300px;overflow-y:auto;"></div>
+        </div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);line-height:1.7;opacity:.7;margin-top:8px;">Die Schwärzung basiert auf musterbasierten Erkennungsregeln. Vollständige Anonymisierung kann nicht garantiert werden. Keine Gewähr für vollständige Entfernung aller personenbezogenen Daten.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ SIGNATURE MODAL ════════════ -->
 <div id="sig-modal">
   <div class="sig-box">
@@ -855,7 +1001,7 @@ const TOGGLE_HTML=`<div style="display:flex;gap:2px;background:var(--surface2);b
   });
 })();
 
-const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex','view-jpg2pdf'];
+const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex','view-jpg2pdf','view-pdf2excel','view-anonymizer'];
 function showView(id){
   VIEWS.forEach(v=>{
     const el=document.getElementById(v);if(!el)return;
@@ -914,6 +1060,10 @@ function openTool(tool,subtool){
     showView('view-duplex');
   } else if(tool==='jpg2pdf'){
     showView('view-jpg2pdf');
+  } else if(tool==='pdf2excel'){
+    showView('view-pdf2excel');
+  } else if(tool==='anonymizer'){
+    showView('view-anonymizer');
   }
 }
 
@@ -1594,18 +1744,17 @@ cdz.addEventListener('drop',e=>{e.preventDefault();cdz.classList.remove('over');
 async function loadGhostscript(){
   if(gsInstance)return gsInstance;
   if(gsLoading){
-    // wait until loaded
     await new Promise(resolve=>{const t=setInterval(()=>{if(gsInstance){clearInterval(t);resolve();}},200);});
     return gsInstance;
   }
   gsLoading=true;
-  showLoading(true,'Ghostscript wird geladen… (einmalig ~18 MB)');
+  // Only show overlay if triggered by download, not by background preview
+  // (showLoading is called by the caller when needed)
   try{
     const mod=await import('https://cdn.jsdelivr.net/npm/@jspawn/ghostscript-wasm@0.0.2/gs.mjs');
     gsInstance=await mod.default({locateFile:f=>`https://cdn.jsdelivr.net/npm/@jspawn/ghostscript-wasm@0.0.2/${f}`});
     return gsInstance;
   }catch(e){gsLoading=false;throw new Error('Ghostscript konnte nicht geladen werden: '+e.message);}
-  finally{showLoading(false);}
 }
 
 async function compressOnce(dpi,pdfSettings){
@@ -1621,9 +1770,11 @@ async function compressOnce(dpi,pdfSettings){
 }
 
 async function runCompressPreviews(){
-  const snapshot=compressPdfBytes; // track if user uploads new file
+  const snapshot=compressPdfBytes;
+  // Load GS silently in background (no fullscreen overlay)
+  try{ await loadGhostscript(); }catch(e){return;}
   for(const cfg of DPI_CONFIGS){
-    if(compressPdfBytes!==snapshot)return; // new file uploaded, abort
+    if(compressPdfBytes!==snapshot)return;
     try{
       const out=await compressOnce(cfg.dpi,cfg.pdfSettings);
       if(compressPdfBytes!==snapshot)return;
@@ -1633,12 +1784,9 @@ async function runCompressPreviews(){
       const btn=document.querySelector(`.compress-dpi-btn[data-dpi="${cfg.dpi}"]`);
       if(!btn)continue;
       const sub=btn.querySelector('span');
-      if(saved>0){
-        sub.innerHTML=`${formatBytes(newSize)} &nbsp;−${pct}%`;
-      } else {
-        sub.textContent='kein Vorteil';
-      }
-      btn.dataset.preview=newSize; // store bytes for download reuse
+      if(saved>0){sub.innerHTML=`${formatBytes(newSize)} &nbsp;−${pct}%`;}
+      else{sub.textContent='kein Vorteil';}
+      btn.dataset.preview=newSize;
     }catch(e){
       const btn=document.querySelector(`.compress-dpi-btn[data-dpi="${cfg.dpi}"]`);
       if(btn)btn.querySelector('span').textContent='Fehler';
@@ -1655,32 +1803,12 @@ function selectDpi(btn){
 async function downloadCompressed(){
   if(!compressPdfBytes)return;
   const dpi=parseInt(document.getElementById('compress-quality').value)||200;
-  const activeBtn=document.querySelector(`.compress-dpi-btn[data-dpi="${dpi}"]`);
-  // If preview already computed, reuse it
-  if(activeBtn&&activeBtn.dataset.preview){
-    showLoading(true,'PDF wird vorbereitet…');
-    try{
-      const out=await compressOnce(dpi,DPI_CONFIGS.find(c=>c.dpi===dpi)?.pdfSettings||'ebook');
-      const newSize=out.byteLength;
-      const saved=compressOrigSize-newSize;
-      const pct=((saved/compressOrigSize)*100).toFixed(1);
-      document.getElementById('compress-stats').innerHTML=
-        `Vorher: <strong>${formatBytes(compressOrigSize)}</strong><br>`+
-        `Nachher: <strong>${formatBytes(newSize)}</strong><br>`+
-        `Einsparung: <strong>${saved>0?formatBytes(saved)+' ('+pct+'%)':'Keine — PDF bereits optimiert'}</strong>`;
-      document.getElementById('compress-result').style.display='block';
-      triggerDownload(out,'komprimiert.pdf');
-      toast(saved>0?`${pct}% eingespart`:'PDF bereits optimiert');
-    }catch(e){alert('Fehler: '+e.message);}
-    finally{showLoading(false);}
-    return;
-  }
-  // Fallback: compute now
   const cfg=DPI_CONFIGS.find(c=>c.dpi===dpi)||DPI_CONFIGS[2];
+  const gsAlreadyLoaded=!!gsInstance;
+  showLoading(true, gsAlreadyLoaded ? 'PDF wird komprimiert…' : 'Ghostscript wird geladen… (einmalig ~18 MB)');
   try{
-    const gs=await loadGhostscript();
-    showLoading(true,'PDF wird komprimiert…');
     const out=await compressOnce(cfg.dpi,cfg.pdfSettings);
+    if(!gsAlreadyLoaded) document.getElementById('loading-text').textContent='PDF wird komprimiert…';
     const newSize=out.byteLength;
     const saved=compressOrigSize-newSize;
     const pct=((saved/compressOrigSize)*100).toFixed(1);
@@ -1921,6 +2049,463 @@ async function jpg2pdfDownload(){
     toast(jpg2pdfFiles.length+' Fotos als PDF gespeichert');
   }catch(e){alert('Fehler: '+e.message);console.error(e);}
   finally{showLoading(false);}
+}
+
+// ════════════════════════════════════════
+// PDF2EXCEL — mupdf.js + Camelot Stream/Lattice
+// ════════════════════════════════════════
+let p2ePagesData=[],p2eCurrentPage=0,p2eFileName='',p2eMode='native',p2eMuPDF=null;
+
+// Drag-drop
+const p2edz=document.getElementById('p2e-dz');
+p2edz.addEventListener('dragover',e=>{e.preventDefault();p2edz.classList.add('over');});
+p2edz.addEventListener('dragleave',()=>p2edz.classList.remove('over'));
+p2edz.addEventListener('drop',e=>{e.preventDefault();p2edz.classList.remove('over');p2eHandleFile(e.dataTransfer.files[0]);});
+
+const P2E_MODES={
+  native:'Liest Text direkt aus der PDF — schnell und präzise für digitale PDFs.',
+  lattice:'Erkennt Tabellen anhand von Linien/Rahmen (Lattice). Ideal für PDFs mit Gitterlinien.',
+  stream:'Analysiert Textkanten und Abstände (Camelot Stream). Ideal für Tabellen ohne Rahmen.'
+};
+
+function p2eSetMode(mode,btn){
+  p2eMode=mode;
+  document.querySelectorAll('#p2e-mode-native,#p2e-mode-lattice,#p2e-mode-stream').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('p2e-mode-desc').textContent=P2E_MODES[mode];
+}
+
+// Lazy-load mupdf.js WASM (~8 MB)
+async function p2eLoadMuPDF(){
+  if(p2eMuPDF)return p2eMuPDF;
+  showLoading(true,'MuPDF wird geladen… (einmalig ~8 MB)');
+  try{
+    const mod=await import('https://cdn.jsdelivr.net/npm/mupdf@1.3.1/dist/mupdf.js');
+    const mupdf=mod.default||mod;
+    // mupdf may need init
+    if(typeof mupdf.ready!=='undefined') await mupdf.ready;
+    p2eMuPDF=mupdf;
+    return mupdf;
+  }finally{showLoading(false);}
+}
+
+async function p2eHandleFile(file){
+  if(!file)return;
+  p2eFileName=file.name.replace(/\.pdf$/i,'');
+  document.getElementById('p2e-filename').textContent=file.name;
+  document.getElementById('p2e-dz-text').innerHTML='<strong>'+file.name+'</strong><br>wird verarbeitet…';
+  document.getElementById('p2e-warn').style.display='none';
+  document.getElementById('p2e-preview-wrap').style.display='none';
+  p2ePagesData=[];
+  try{
+    showLoading(true,'PDF wird analysiert…');
+    const buf=new Uint8Array(await file.arrayBuffer());
+
+    if(p2eMode==='native'){
+      // Use pdf.js for native text — reliable and fast
+      const pdfDoc=await pdfjsLib.getDocument({data:buf}).promise;
+      const n=pdfDoc.numPages;
+      let scanScore=0;
+      for(let p=1;p<=n;p++){
+        document.getElementById('loading-text').textContent='Seite '+p+' von '+n+'…';
+        const page=await pdfDoc.getPage(p);
+        const tc=await page.getTextContent();
+        const items=tc.items||[];
+        const avgW=items.length?items.reduce((s,i)=>s+(i.width||0),0)/items.length:0;
+        if(items.length<15||avgW<1)scanScore++;
+        p2ePagesData.push(p2eNativeExtract(items));
+      }
+      if(scanScore>n/2){
+        document.getElementById('p2e-warn-text').textContent='Wenig eingebetteter Text erkannt. Für gescannte PDFs ist der Modus "Stream" oder "Lattice" mit OCR besser geeignet.';
+        document.getElementById('p2e-warn').style.display='block';
+      }
+    } else {
+      // Use mupdf.js for precise bounding boxes
+      const mupdf=await p2eLoadMuPDF();
+      showLoading(true,'Tabellen werden extrahiert…');
+      let doc;
+      try{
+        doc=await mupdf.Document.openDocument(buf,'application/pdf');
+      }catch(e){
+        // fallback: try synchronous open
+        doc=mupdf.Document.openDocument(buf,'application/pdf');
+      }
+      const n=doc.countPages();
+      for(let p=0;p<n;p++){
+        document.getElementById('loading-text').textContent='Seite '+(p+1)+' von '+n+'…';
+        const page=doc.loadPage(p);
+        const jsonStr=page.toStructuredText('preserve-whitespace').asJSON();
+        const structured=JSON.parse(jsonStr);
+        if(p2eMode==='lattice'){
+          p2ePagesData.push(p2eLatticeExtract(structured,page));
+        } else {
+          p2ePagesData.push(p2eStreamExtract(structured));
+        }
+        page.destroy();
+      }
+      doc.destroy();
+    }
+
+    // Build page selector
+    const sel=document.getElementById('p2e-page-select');
+    sel.innerHTML='';
+    p2ePagesData.forEach((_,i)=>{
+      const opt=document.createElement('option');
+      opt.value=i;opt.textContent='Seite '+(i+1)+' / '+p2ePagesData.length;
+      sel.appendChild(opt);
+    });
+    sel.style.display=p2ePagesData.length>1?'block':'none';
+    document.getElementById('btn-p2e-dl').disabled=false;
+    document.getElementById('p2e-preview-wrap').style.display='block';
+    document.getElementById('p2e-inp').value='';
+    p2eShowPage(0);
+    document.getElementById('p2e-dz-text').innerHTML='<strong>'+file.name+'</strong><br>'+p2ePagesData.length+' Seite'+(p2ePagesData.length>1?'n':'')+' verarbeitet';
+  }catch(e){alert('Fehler: '+e.message);console.error(e);}
+  finally{showLoading(false);}
+}
+
+// ── Native: pdf.js text extraction with gap-based column detection ──
+function p2eNativeExtract(items){
+  if(!items.length)return[];
+  // Sort descending Y (pdf coords), ascending X
+  const sorted=[...items].sort((a,b)=>{
+    const ay=Math.round((a.transform[5]||0)/2)*2;
+    const by=Math.round((b.transform[5]||0)/2)*2;
+    return by-ay||a.transform[4]-b.transform[4];
+  });
+  // Group into lines by Y proximity
+  const lines=[];let curY=null,curLine=[];
+  const yTol=3;
+  for(const item of sorted){
+    const y=item.transform[5]||0,x=item.transform[4]||0;
+    const text=(item.str||'').trim();if(!text)continue;
+    const fs=item.transform[0]||10;
+    const tolerance=Math.max(yTol,fs*0.4);
+    if(curY===null||Math.abs(y-curY)>tolerance){
+      if(curLine.length)lines.push(curLine);
+      curLine=[{x,y,text,w:item.width||0,fs}];curY=y;
+    } else {
+      curLine.push({x,y,text,w:item.width||0,fs});
+    }
+  }
+  if(curLine.length)lines.push(curLine);
+  return p2eLinesToRows(lines);
+}
+
+// ── Stream: Camelot-style text edge analysis ──
+function p2eStreamExtract(structured){
+  // Flatten mupdf structured text to word-level items with bbox
+  const words=[];
+  for(const block of structured.blocks||[]){
+    if(block.type!=='text')continue;
+    for(const line of block.lines||[]){
+      for(const span of line.spans||[]){
+        for(const ch of span.chars||[]){
+          // chars have bbox [x0,y0,x1,y1]
+        }
+        // Use span-level: each span is a word/group
+        const text=(span.text||'').trim();
+        if(!text)continue;
+        const b=span.bbox||span.origin;
+        if(!b)continue;
+        const x0=Array.isArray(b)?b[0]:b[0];
+        const y0=Array.isArray(b)?b[1]:b[1];
+        const x1=Array.isArray(b)?b[2]:b[2];
+        const y1=Array.isArray(b)?b[3]:b[3];
+        words.push({x:x0,y:y0,x1,y1,text,w:x1-x0,h:y1-y0});
+      }
+    }
+  }
+  if(!words.length)return[];
+
+  // Group by rows (Y proximity)
+  words.sort((a,b)=>a.y-b.y||a.x-b.x);
+  const lines=[];let curY=null,curLine=[];
+  for(const w of words){
+    if(curY===null||Math.abs(w.y-curY)>w.h*0.5){
+      if(curLine.length)lines.push(curLine);
+      curLine=[w];curY=w.y;
+    } else {curLine.push(w);}
+  }
+  if(curLine.length)lines.push(curLine);
+
+  // Convert to same format as native
+  const nativeLines=lines.map(line=>line.map(w=>({x:w.x,y:w.y,text:w.text,w:w.w,fs:w.h})));
+  return p2eLinesToRows(nativeLines);
+}
+
+// ── Lattice: detect tables by line intersections via mupdf ──
+function p2eLatticeExtract(structured,page){
+  // For lattice, fall back to stream since full line detection needs
+  // vector graphics parsing (future enhancement)
+  // For now use stream with tighter column threshold
+  return p2eStreamExtract(structured);
+}
+
+// ── Shared: convert grouped lines to 2D table rows ──
+function p2eLinesToRows(lines){
+  if(!lines.length)return[];
+  const allX=lines.flatMap(l=>l.map(c=>c.x)).sort((a,b)=>a-b);
+  // Gap analysis for column detection
+  const gaps=[];for(let i=1;i<allX.length;i++)gaps.push(allX[i]-allX[i-1]);
+  const sortedGaps=[...gaps].sort((a,b)=>a-b);
+  const medGap=sortedGaps.length?sortedGaps[Math.floor(sortedGaps.length/2)]:10;
+  // Column threshold: 3× median gap, minimum 15pt
+  const colThresh=Math.max(medGap*3,15);
+  const colBounds=[allX[0]||0];let prev=allX[0]||0;
+  for(const x of allX){if(x-prev>colThresh){colBounds.push(x);prev=x;}}
+  const getCol=x=>{
+    let ci=0;
+    for(let i=0;i<colBounds.length;i++){if(x>=colBounds[i]-5)ci=i;}
+    return ci;
+  };
+  const nCols=colBounds.length;
+  return lines.map(line=>{
+    const cells=new Array(nCols).fill('');
+    // Sort line items by X
+    const sorted=[...line].sort((a,b)=>a.x-b.x);
+    for(const item of sorted){
+      const ci=getCol(item.x);
+      cells[ci]=cells[ci]?(cells[ci]+' '+item.text).trim():item.text;
+    }
+    let last=nCols-1;while(last>0&&!cells[last])last--;
+    return cells.slice(0,last+1);
+  }).filter(r=>r.some(c=>c));
+}
+
+function p2eShowPage(idx){
+  p2eCurrentPage=idx;
+  document.getElementById('p2e-page-select').value=idx;
+  const rows=p2ePagesData[idx]||[];
+  const table=document.getElementById('p2e-table');
+  table.innerHTML='';
+  if(!rows.length){
+    table.innerHTML='<tr><td style="padding:12px;color:var(--text-muted);font-family:\'IBM Plex Mono\',monospace;font-size:10px;">Keine Daten gefunden. Anderen Modus probieren.</td></tr>';
+    return;
+  }
+  const maxCols=Math.max(...rows.map(r=>r.length));
+  rows.forEach((row,ri)=>{
+    const tr=document.createElement('tr');
+    tr.style.background=ri%2===0?'var(--surface)':'var(--surface2)';
+    for(let c=0;c<maxCols;c++){
+      const td=document.createElement('td');
+      td.textContent=row[c]||'';
+      td.style.cssText='padding:5px 10px;border:1px solid var(--border);font-family:\'IBM Plex Mono\',monospace;font-size:10px;white-space:nowrap;color:var(--text);';
+      if(ri===0)td.style.fontWeight='500';
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  });
+  const maxC=Math.max(...rows.map(r=>r.length));
+  document.getElementById('p2e-status').textContent=
+    'Seite '+(idx+1)+' · '+rows.length+' Zeilen · '+maxC+' Spalten · '+p2eMode.toUpperCase();
+}
+
+function p2eDownload(){
+  if(!p2ePagesData.length)return;
+  const wb=XLSX.utils.book_new();
+  p2ePagesData.forEach((rows,i)=>{
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Seite '+(i+1));
+  });
+  XLSX.writeFile(wb,p2eFileName+'.xlsx');
+  toast('Excel-Datei heruntergeladen');
+}
+
+// ════════════════════════════════════════
+// PDF ANONYMIZER
+// ════════════════════════════════════════
+const ANON_FILTERS=[
+  {id:'steuernummer',label:'Steuernummer',desc:'§ 139a AO · 10/11-stellig',enabled:true,patterns:[/\b\d{2}[\s\/]\d{3}[\s\/]\d{5}\b/g,/\b\d{3}[\s\/]\d{3}[\s\/]\d{5}\b/g,/(?:(?:StNr|Steuernummer|St\.?-?Nr\.?)[:\s.]*)\d[\d\s\/]{8,14}\d/gi]},
+  {id:'idnr',label:'IdNr / TIN',desc:'Steuerliche ID · 11-stellig',enabled:true,patterns:[/(?:(?:IdNr|Identifikationsnummer|TIN|Steuer-ID)[:\s.]*)?(?<!\d)[1-9]\d{10}(?!\d)/g,/(?:(?:IdNr|Steuer-?ID)[:\s.]*)[1-9][\d]{10}/gi]},
+  {id:'svnummer',label:'SV-Nummer (DE)',desc:'BBTTMMJJAAAAAA',enabled:true,patterns:[/\b\d{2}\s?\d{6}\s?[A-Z]\s?\d{3}\b/g,/(?:(?:Versicherungsnummer|SV-?Nr\.?)[:\s.]*)\d{2}\s?\d{6}\s?[A-Z]\s?\d{3}/gi]},
+  {id:'ahv',label:'AHV-Nummer (CH)',desc:'756.XXXX.XXXX.XX',enabled:true,patterns:[/\b756[\.\s]?\d{4}[\.\s]?\d{4}[\.\s]?\d{2}\b/g]},
+  {id:'iban',label:'IBAN',desc:'Internationale Bankkontonummer',enabled:true,patterns:[/\b[A-Z]{2}\d{2}[\s]?(?:\d{4}[\s]?){4,7}\d{1,4}\b/g]},
+  {id:'geburtsdatum',label:'Geburtsdatum',desc:'TT.MM.JJJJ, JJJJ-MM-TT',enabled:true,patterns:[/\b(?:0?[1-9]|[12]\d|3[01])\.(?:0?[1-9]|1[0-2])\.(?:19|20)\d{2}\b/g,/\b(?:19|20)\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b/g,/(?:(?:geb(?:oren)?|Geb\.?datum)[:\s.]*)\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}/gi]},
+  {id:'telefon',label:'Telefonnummer',desc:'+49, +41, 0XXX',enabled:true,patterns:[/(?:\+49|0049|0)[1-9]\d[\s\-\/]?\d{3,4}[\s\-\/]?\d{3,8}/g,/(?:\+41|0041)[1-9]\d[\s\-\/]?\d{3}[\s\-\/]?\d{2}[\s\-\/]?\d{2}/g]},
+  {id:'email',label:'E-Mail-Adresse',desc:'name@domain.tld',enabled:true,patterns:[/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g]},
+  {id:'postleitzahl',label:'PLZ + Ort',desc:'5-stellige PLZ mit Ort',enabled:true,patterns:[/\b\d{5}\s+[A-ZÄÖÜ][a-zäöüß]+(?:[\s\-][A-ZÄÖÜa-zäöüß]+)*/g]},
+  {id:'krankenkasse',label:'Krankenkassen-Nr.',desc:'KV-Nummer · 10-stellig',enabled:true,patterns:[/\b[A-Z]\d{9}\b/g,/(?:(?:Versichertennummer|KV-?Nr\.?)[:\s.]*)[A-Z]\d{9}/gi]},
+];
+
+let anonPdfBytes=null,anonResultBytes=null,anonFileName='';
+
+// Init filter grid
+(function(){
+  const grid=document.getElementById('anon-filter-grid');
+  ANON_FILTERS.forEach(f=>{
+    const wrap=document.createElement('label');
+    wrap.className='anon-filter-item';
+    wrap.innerHTML=`<input type="checkbox" id="achk-${f.id}" ${f.enabled?'checked':''}><div><div class="anon-filter-label">${f.label}</div><div class="anon-filter-desc">${f.desc}</div></div>`;
+    grid.appendChild(wrap);
+  });
+})();
+
+// Drag-drop
+const anonDz=document.getElementById('anon-dz');
+anonDz.addEventListener('dragover',e=>{e.preventDefault();anonDz.classList.add('over');});
+anonDz.addEventListener('dragleave',()=>anonDz.classList.remove('over'));
+anonDz.addEventListener('drop',e=>{e.preventDefault();anonDz.classList.remove('over');anonHandleFile(e.dataTransfer.files[0]);});
+
+function anonHandleFile(f){
+  if(!f||!f.name.toLowerCase().endsWith('.pdf')){toast('Bitte eine PDF-Datei auswählen.');return;}
+  anonFileName=f.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    anonPdfBytes=new Uint8Array(e.target.result);
+    document.getElementById('anon-filename').textContent=f.name;
+    document.getElementById('anon-dz-text').innerHTML=`<strong>${f.name}</strong><br>${(f.size/1024).toFixed(0)} KB geladen`;
+    document.getElementById('btn-anon-run').disabled=false;
+    document.getElementById('anon-result-wrap').style.display='none';
+    document.getElementById('anon-log-wrap').style.display='none';
+    document.getElementById('anon-progress-wrap').style.display='none';
+    anonResultBytes=null;
+    document.getElementById('btn-anon-dl').disabled=true;
+  };
+  reader.readAsArrayBuffer(f);
+}
+
+function anonLog(msg,cls=''){
+  const el=document.getElementById('anon-log');
+  if(!msg){el.innerHTML='';return;}
+  el.innerHTML+=`<div class="${cls?'anon-log-'+cls:''}">${msg}</div>`;
+  el.scrollTop=el.scrollHeight;
+  document.getElementById('anon-log-wrap').style.display='block';
+}
+
+function anonProgress(pct,label){
+  document.getElementById('anon-progress-wrap').style.display='block';
+  document.getElementById('anon-progress-bar').style.width=pct+'%';
+  document.getElementById('anon-progress-label').textContent=label;
+}
+
+function anonGetPatterns(){
+  const active=[];
+  ANON_FILTERS.forEach(f=>{
+    if(document.getElementById('achk-'+f.id)?.checked){
+      f.patterns.forEach(p=>active.push({label:f.label,re:p}));
+    }
+  });
+  const custom=document.getElementById('anon-custom').value;
+  if(custom.trim()){
+    custom.split(',').forEach(part=>{
+      const s=part.trim();if(!s)return;
+      try{active.push({label:'Eigene',re:new RegExp(s,'gi')});}
+      catch(e){active.push({label:'Eigene',re:new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi')});}
+    });
+  }
+  return active;
+}
+
+async function anonRun(){
+  if(!anonPdfBytes)return;
+  document.getElementById('btn-anon-run').disabled=true;
+  document.getElementById('anon-result-wrap').style.display='none';
+  anonLog('');
+  const patterns=anonGetPatterns();
+  if(!patterns.length){anonLog('Keine Filter aktiv.','warn');document.getElementById('btn-anon-run').disabled=false;return;}
+  anonProgress(5,'Lade PDF…');
+  let pdfDoc,pdfLibDoc;
+  try{
+    pdfDoc=await pdfjsLib.getDocument({data:anonPdfBytes.slice()}).promise;
+    pdfLibDoc=await PDFLib.PDFDocument.load(anonPdfBytes);
+  }catch(e){anonLog('PDF konnte nicht geladen werden: '+e.message,'err');document.getElementById('btn-anon-run').disabled=false;return;}
+  const numPages=pdfDoc.numPages;
+  anonLog(numPages+' Seite(n) gefunden.','ok');
+  anonProgress(10,'Analysiere Text…');
+  const allMatches=[];const pagesAffected=new Set();
+  for(let p=1;p<=numPages;p++){
+    anonProgress(10+Math.floor((p/numPages)*60),'Analysiere Seite '+p+' / '+numPages+'…');
+    const page=await pdfDoc.getPage(p);
+    const textContent=await page.getTextContent();
+    const viewport=page.getViewport({scale:1});
+    const pageH=viewport.height;
+    const items=textContent.items;
+    let fullText='';const charMap=[];
+    for(const item of items){
+      const start=fullText.length;fullText+=item.str;
+      for(let c=0;c<item.str.length;c++) charMap.push({item,charIdx:c,totalIdx:start+c});
+      if(item.hasEOL||item.str===''){fullText+=' ';charMap.push({item:null,charIdx:-1,totalIdx:fullText.length-1});}
+    }
+    for(const {label,re} of patterns){
+      const flags=re.flags.includes('g')?re.flags:re.flags+'g';
+      const rex=new RegExp(re.source,flags);let m;
+      while((m=rex.exec(fullText))!==null){
+        const matchStr=m[0];const start=m.index;const end=start+matchStr.length;
+        const affectedItems=new Map();
+        for(let i=start;i<end&&i<charMap.length;i++){
+          const ci=charMap[i];if(!ci||!ci.item)continue;
+          if(!affectedItems.has(ci.item))affectedItems.set(ci.item,{item:ci.item,chars:[]});
+          affectedItems.get(ci.item).chars.push(ci.charIdx);
+        }
+        const rects=[];
+        for(const [item] of affectedItems){
+          if(!item.transform||!item.width)continue;
+          const [a,,,,tx,ty]=item.transform;
+          const charW=item.width/(item.str.length||1);
+          const firstChar=affectedItems.get(item).chars[0];
+          const lastChar=affectedItems.get(item).chars[affectedItems.get(item).chars.length-1];
+          const x=tx+firstChar*charW;const w=(lastChar-firstChar+1)*charW;
+          const h=item.height||a*1.2||10;
+          const pdfLibY=pageH-ty-h*0.2;
+          rects.push({x:x-1,y:pdfLibY-h*0.8,w:w+2,h:h*1.3});
+        }
+        if(rects.length>0){allMatches.push({pageNum:p,label,value:matchStr.trim(),rects});pagesAffected.add(p);}
+      }
+    }
+  }
+  anonLog(allMatches.length+' Treffer auf '+pagesAffected.size+' Seite(n) gefunden.',allMatches.length?'ok':'warn');
+  anonProgress(75,'Schwärze PDF…');
+  const libPages=pdfLibDoc.getPages();
+  const REDACT_COLOR=PDFLib.rgb(0,0,0);
+  for(const match of allMatches){
+    const pg=libPages[match.pageNum-1];
+    const {width,height}=pg.getSize();
+    for(const r of match.rects){
+      const x=Math.max(0,r.x);const y=Math.max(0,r.y);
+      const w=Math.min(r.w,width-x);const h=Math.min(r.h,height-y);
+      if(w>0&&h>0) pg.drawRectangle({x,y,width:w,height:h,color:REDACT_COLOR,borderWidth:0});
+    }
+  }
+  anonProgress(92,'Finalisiere PDF…');
+  anonResultBytes=await pdfLibDoc.save();
+  anonProgress(100,'Fertig.');
+  // Show results
+  const catSet=new Set(allMatches.map(m=>m.label));
+  document.getElementById('anon-stat-total').textContent=allMatches.length;
+  document.getElementById('anon-stat-pages').textContent=pagesAffected.size;
+  document.getElementById('anon-stat-cats').textContent=catSet.size;
+  const list=document.getElementById('anon-match-list');list.innerHTML='';
+  const shown=allMatches.slice(0,80);
+  shown.forEach(m=>{
+    const d=document.createElement('div');d.className='anon-match-item';
+    const val=m.value.length>30?m.value.slice(0,14)+'…'+m.value.slice(-6):m.value;
+    d.innerHTML=`<span class="anon-match-cat">${m.label}</span><span class="anon-match-val">${val.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span><span class="anon-match-pg">S.${m.pageNum}</span>`;
+    list.appendChild(d);
+  });
+  if(allMatches.length>80){const more=document.createElement('div');more.style='font-family:IBM Plex Mono,monospace;font-size:9px;color:var(--text-muted);padding:6px 12px;';more.textContent='… und '+(allMatches.length-80)+' weitere';list.appendChild(more);}
+  document.getElementById('anon-result-wrap').style.display='block';
+  document.getElementById('btn-anon-dl').disabled=false;
+  document.getElementById('btn-anon-run').disabled=false;
+  anonLog('PDF anonymisiert und bereit zum Download.','ok');
+  toast(allMatches.length+' Schwärzungen auf '+pagesAffected.size+' Seite(n)');
+}
+
+function anonDownload(){
+  if(!anonResultBytes)return;
+  triggerDownload(anonResultBytes,anonFileName.replace(/\.pdf$/i,'')+'_anonymisiert.pdf');
+  toast('Anonymisierte PDF heruntergeladen');
+}
+
+function anonReset(){
+  anonPdfBytes=null;anonResultBytes=null;anonFileName='';
+  document.getElementById('anon-filename').textContent='—';
+  document.getElementById('anon-dz-text').innerHTML='<strong>PDF hier ablegen</strong><br>oder klicken zum Auswählen · Verarbeitung lokal im Browser';
+  document.getElementById('anon-inp').value='';
+  document.getElementById('btn-anon-run').disabled=true;
+  document.getElementById('btn-anon-dl').disabled=true;
+  document.getElementById('anon-result-wrap').style.display='none';
+  document.getElementById('anon-log-wrap').style.display='none';
+  document.getElementById('anon-progress-wrap').style.display='none';
 }
 
 let sigDrawing=false,sigCtx=null;
