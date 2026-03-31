@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root,[data-theme="dark"]{
@@ -377,10 +378,6 @@ body.in-editor .theme-toggle{display:none;}
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="8 13 10.5 18 13 13"/><line x1="8" y1="16" x2="13" y2="16"/></svg></div>
       <div class="tool-card-name">PDF<span>2Excel</span></div>
       <div class="tool-card-desc">Tabellen aus PDFs extrahieren und als Excel exportieren</div>
-      <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-    </div>
-      <div class="tool-card-name">PDF<span>2Excel</span></div>
-      <div class="tool-card-desc">Tabellen aus PDFs extrahieren und als Excel-Datei exportieren</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
     </div>
   </div>
@@ -779,7 +776,7 @@ body.in-editor .theme-toggle{display:none;}
         <div class="tv-title">Bilder auswählen</div>
         <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;">JPEG, PNG, HEIC — mehrere Dateien auf einmal möglich. Bilder werden auf 200 dpi komprimiert. Reihenfolge per Drag&nbsp;&amp;&nbsp;Drop anpassen.</p>
         <div class="drop-zone-sm" id="jpg2pdf-dz" onclick="document.getElementById('jpg2pdf-inp').click()">
-          <input type="file" id="jpg2pdf-inp" accept="image/jpeg,image/png,image/webp,image/heic" multiple style="display:none" onchange="jpg2pdfAddFiles(this.files)">
+          <input type="file" id="jpg2pdf-inp" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" multiple style="display:none" onchange="jpg2pdfAddFiles(this.files)">
           <div class="dz-text"><strong>Fotos hier ablegen</strong><br>oder klicken zum Auswählen (mehrere möglich)</div>
         </div>
       </div>
@@ -1913,22 +1910,42 @@ jpg2pdfDz.addEventListener('dragover',e=>{e.preventDefault();jpg2pdfDz.classList
 jpg2pdfDz.addEventListener('dragleave',()=>jpg2pdfDz.classList.remove('over'));
 jpg2pdfDz.addEventListener('drop',e=>{
   e.preventDefault();jpg2pdfDz.classList.remove('over');
-  const imgs=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+  const imgs=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')||/\.(heic|heif)$/i.test(f.name));
   if(imgs.length)jpg2pdfAddFiles(imgs);
 });
 
 function jpg2pdfAddFiles(fileList){
-  const files=[...fileList].filter(f=>f.type.startsWith('image/'));
+  const files=[...fileList].filter(f=>f.type.startsWith('image/')||/\.(heic|heif)$/i.test(f.name));
   let pending=files.length;
   if(!pending)return;
   files.forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
-      pending--;
-      if(!pending)jpg2pdfRender();
-    };
-    reader.readAsDataURL(file);
+    const isHeic=/heic|heif/i.test(file.type)||/\.(heic|heif)$/i.test(file.name);
+    if(isHeic&&typeof heic2any!=='undefined'){
+      // Convert HEIC to JPEG first
+      heic2any({blob:file,toType:'image/jpeg',quality:1}).then(blob=>{
+        const reader=new FileReader();
+        reader.onload=e=>{
+          jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
+          pending--;if(!pending)jpg2pdfRender();
+        };
+        reader.readAsDataURL(blob);
+      }).catch(()=>{
+        // Fallback: try reading directly
+        const reader=new FileReader();
+        reader.onload=e=>{
+          jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
+          pending--;if(!pending)jpg2pdfRender();
+        };
+        reader.readAsDataURL(file);
+      });
+    } else {
+      const reader=new FileReader();
+      reader.onload=e=>{
+        jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
+        pending--;if(!pending)jpg2pdfRender();
+      };
+      reader.readAsDataURL(file);
+    }
   });
   document.getElementById('jpg2pdf-inp').value='';
 }
