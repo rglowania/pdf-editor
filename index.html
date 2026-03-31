@@ -8,8 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic-to@1.4.2/dist/iife/heic-to.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic-to@1.4.2/dist/iife/heic-to.js"></script>
 <style>
 :root,[data-theme="dark"]{
   --bg:#0c1410;--surface:#13201a;--surface2:#192b22;--border:#213328;
@@ -1918,31 +1919,33 @@ function jpg2pdfAddFiles(fileList){
   const files=[...fileList].filter(f=>f.type.startsWith('image/')||/\.(heic|heif)$/i.test(f.name));
   let pending=files.length;
   if(!pending)return;
-  files.forEach(file=>{
+  files.forEach(async file=>{
     const isHeic=/heic|heif/i.test(file.type)||/\.(heic|heif)$/i.test(file.name);
-    if(isHeic&&typeof heic2any!=='undefined'){
-      // Convert HEIC to JPEG first
-      heic2any({blob:file,toType:'image/jpeg',quality:1}).then(blob=>{
+    if(isHeic){
+      showLoading(true,'HEIC wird konvertiert\u2026');
+      try{
+        if(typeof HeicTo==='undefined') throw new Error('HeicTo nicht geladen');
+        // heic-to uses libheif 1.21.2 — supports HEVC Main Still Picture Profile
+        const result=await HeicTo({blob:file,type:'image/jpeg',quality:0.92});
+        showLoading(false);
+        const jpgName=file.name.replace(/\.(heic|heif)$/i,'.jpg');
         const reader=new FileReader();
         reader.onload=e=>{
-          jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
-          pending--;if(!pending)jpg2pdfRender();
+          jpg2pdfFiles.push({file:new File([result],jpgName,{type:'image/jpeg'}),dataUrl:e.target.result,id:Date.now()+Math.random()});
+          pending--;if(pending<=0)jpg2pdfRender();
         };
-        reader.readAsDataURL(blob);
-      }).catch(()=>{
-        // Fallback: try reading directly
-        const reader=new FileReader();
-        reader.onload=e=>{
-          jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
-          pending--;if(!pending)jpg2pdfRender();
-        };
-        reader.readAsDataURL(file);
-      });
+        reader.onerror=()=>{pending--;if(pending<=0){showLoading(false);jpg2pdfRender();}};
+        reader.readAsDataURL(result);
+      }catch(err){
+        showLoading(false);
+        toast('HEIC Fehler: '+err.message);
+        pending--;if(pending<=0)jpg2pdfRender();
+      }
     } else {
       const reader=new FileReader();
       reader.onload=e=>{
         jpg2pdfFiles.push({file,dataUrl:e.target.result,id:Date.now()+Math.random()});
-        pending--;if(!pending)jpg2pdfRender();
+        pending--;if(pending<=0)jpg2pdfRender();
       };
       reader.readAsDataURL(file);
     }
@@ -2011,7 +2014,7 @@ async function jpg2pdfDownload(){
   if(!jpg2pdfFiles.length)return;
   showLoading(true,'Bilder werden verarbeitet…');
   try{
-    const {PDFDocument:PD,PageSizes}=PDFLib;
+    const {PDFDocument:PD}=PDFLib;
     const doc=await PD.create();
     const pageSize=document.getElementById('jpg2pdf-pagesize').value;
     const orient=document.getElementById('jpg2pdf-orient').value;
@@ -2023,43 +2026,58 @@ async function jpg2pdfDownload(){
       document.getElementById('loading-text').textContent='Bild '+(i+1)+' von '+jpg2pdfFiles.length+'…';
       const item=jpg2pdfFiles[i];
 
-      // Draw image to canvas for compression
+      // Load image element
       const imgEl=await new Promise((res,rej)=>{
         const img=new Image();
         img.onload=()=>res(img);
-        img.onerror=rej;
+        img.onerror=e=>rej(new Error('Bild konnte nicht geladen werden: '+item.file.name));
         img.src=item.dataUrl;
       });
 
-      // Calculate target size at 200 dpi (assuming 96 dpi screen)
+      if(!imgEl.naturalWidth||!imgEl.naturalHeight){
+        throw new Error('Bild hat keine gültige Größe: '+item.file.name);
+      }
+
+      // Resize to 200 dpi (96 dpi = screen baseline)
       const scale=TARGET_DPI/96;
-      const cw=Math.round(imgEl.naturalWidth*scale);
-      const ch=Math.round(imgEl.naturalHeight*scale);
+      const cw=Math.max(1,Math.round(imgEl.naturalWidth*scale));
+      const ch=Math.max(1,Math.round(imgEl.naturalHeight*scale));
       const canvas=document.createElement('canvas');
       canvas.width=cw;canvas.height=ch;
-      canvas.getContext('2d').drawImage(imgEl,0,0,cw,ch);
-      const jpegDataUrl=canvas.toDataURL('image/jpeg',quality);
-      const b64=jpegDataUrl.split(',')[1];
-      const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-      const embImg=await doc.embedJpg(bytes);
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(imgEl,0,0,cw,ch);
 
-      // Determine page dimensions
+      // Try JPEG first, fall back to PNG
+      let embImg;
+      try{
+        const jpegDataUrl=canvas.toDataURL('image/jpeg',quality);
+        if(!jpegDataUrl||jpegDataUrl==='data:,') throw new Error('JPEG encoding failed');
+        const b64=jpegDataUrl.split(',')[1];
+        if(!b64) throw new Error('No base64 data');
+        const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+        embImg=await doc.embedJpg(bytes);
+      }catch(jpegErr){
+        // Fallback: PNG
+        const pngDataUrl=canvas.toDataURL('image/png');
+        const b64=pngDataUrl.split(',')[1];
+        const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+        embImg=await doc.embedPng(bytes);
+      }
+
+      // Page dimensions
       let pw,ph;
       if(pageSize==='a4'){pw=210*MM_TO_PT;ph=297*MM_TO_PT;}
       else if(pageSize==='a3'){pw=297*MM_TO_PT;ph=420*MM_TO_PT;}
-      else{pw=embImg.width;ph=embImg.height;} // fit to image
+      else{pw=embImg.width;ph=embImg.height;}
 
-      // Auto-orient: landscape if image is wider than tall
+      // Orientation
       const isLandscape=(orient==='landscape')||(orient==='auto'&&embImg.width>embImg.height);
       if(isLandscape&&pageSize!=='fit'){const tmp=pw;pw=ph;ph=tmp;}
 
       const page=doc.addPage([pw,ph]);
-
-      // Scale image to fill page proportionally
       const ratio=Math.min(pw/embImg.width,ph/embImg.height);
       const dw=embImg.width*ratio,dh=embImg.height*ratio;
-      const x=(pw-dw)/2,y=(ph-dh)/2;
-      page.drawImage(embImg,{x,y,width:dw,height:dh});
+      page.drawImage(embImg,{x:(pw-dw)/2,y:(ph-dh)/2,width:dw,height:dh});
     }
 
     triggerDownload(await doc.save(),'fotos.pdf');
