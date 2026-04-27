@@ -72,6 +72,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 #view-jpg2pdf.active{display:flex;}
 #view-pdf2excel{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
 #view-pdf2excel.active{display:flex;}
+#view-pdf2foto{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+#view-pdf2foto.active{display:flex;}
 #view-anonymizer{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
 #view-anonymizer.active{display:flex;}
 
@@ -266,17 +268,6 @@ body.in-editor .theme-toggle{display:none;}
 .sig-btn-p{background:var(--accent);color:#0c1410;border-color:var(--accent);font-weight:500;}
 .sig-btn-p:hover{opacity:.85;color:#0c1410;}
 
-/* ══ PAGE PREVIEW MODAL ══ */
-#page-preview-modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.82);align-items:center;justify-content:center;}
-#page-preview-modal.open{display:flex;}
-#page-preview-box{background:var(--surface);border:1px solid var(--border);padding:16px;max-width:94vw;max-height:94vh;display:flex;flex-direction:column;gap:10px;position:relative;}
-#page-preview-box::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);}
-#page-preview-header{display:flex;justify-content:space-between;align-items:center;gap:24px;}
-#page-preview-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}
-#page-preview-close{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:5px 12px;cursor:pointer;flex-shrink:0;}
-#page-preview-close:hover{color:var(--accent);border-color:var(--accent);}
-#page-preview-canvas{display:block;max-width:calc(90vw - 32px);max-height:calc(88vh - 56px);}
-
 /* ══ LOADING ══ */
 #loading{display:none;position:fixed;inset:0;z-index:9000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 #loading.show{display:flex;}
@@ -384,6 +375,12 @@ body.in-editor .theme-toggle{display:none;}
       <div class="tool-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="17"/></svg></div>
       <div class="tool-card-name">PDF <span>Anonymizer</span></div>
       <div class="tool-card-desc">Vertrauliche Daten automatisch schwärzen (IBAN, Steuernummer, Geburtsdatum…)</div>
+      <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
+    </div>
+    <div class="tool-card" onclick="openTool('pdf2foto')">
+      <div class="tool-card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="3" y="12" width="18" height="10" rx="1"/><circle cx="8.5" cy="16.5" r="1.5"/><polyline points="21 20 16 15 11 20"/></svg></div>
+      <div class="tool-card-name">PDF<span>2Foto</span></div>
+      <div class="tool-card-desc">PDF-Seiten als JPEG oder PNG exportieren</div>
       <div class="tool-card-arrow"><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
     </div>
     <div class="tool-card" onclick="openTool('pdf2excel')">
@@ -935,6 +932,75 @@ body.in-editor .theme-toggle{display:none;}
   </div>
 </div>
 
+<!-- ════════════════════ PDF2FOTO ════════════════════ -->
+<div id="view-pdf2foto">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="goHome()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Zurück</button>
+    <div class="ed-topbar-title">PDF<span>2Foto</span></div>
+    <div class="ed-topbar-file" id="p2f-filename">—</div>
+    <div class="ed-topbar-right">
+      <button class="btn-dl" id="btn-p2f-dl" onclick="p2fDownload()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Als ZIP herunterladen
+      </button>
+    </div>
+  </div>
+  <div class="tool-view-body">
+    <div class="tool-view-inner">
+      <div class="tv-section">
+        <div class="tv-label">PDF laden</div>
+        <div class="tv-title">Datei auswählen</div>
+        <div class="drop-zone-sm" id="p2f-dz" onclick="document.getElementById('p2f-inp').click()">
+          <input type="file" id="p2f-inp" accept=".pdf" style="display:none" onchange="p2fHandleFile(this.files[0])">
+          <div class="dz-text" id="p2f-dz-text"><strong>PDF hier ablegen</strong><br>oder klicken zum Auswählen</div>
+        </div>
+      </div>
+      <div class="tv-section">
+        <div class="tv-label">Einstellungen</div>
+        <div class="tv-title">Export konfigurieren</div>
+        <div class="form-row">
+          <span class="form-label">Format</span>
+          <select class="form-select" id="p2f-format" onchange="document.getElementById('p2f-quality-row').style.display=this.value==='png'?'none':'flex'">
+            <option value="jpeg" selected>JPEG</option>
+            <option value="png">PNG</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Auflösung</span>
+          <select class="form-select" id="p2f-dpi">
+            <option value="1">72 dpi (Bildschirm)</option>
+            <option value="2" selected>150 dpi (Standard)</option>
+            <option value="3">300 dpi (Druck)</option>
+            <option value="4">400 dpi (Hohe Qualität)</option>
+          </select>
+        </div>
+        <div class="form-row" id="p2f-quality-row">
+          <span class="form-label">Qualität</span>
+          <div class="range-row" style="flex:1">
+            <input type="range" min="40" max="100" value="92" id="p2f-quality" oninput="document.getElementById('p2f-qval').textContent=this.value+'%'">
+            <span class="range-val" id="p2f-qval">92%</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Seiten</span>
+          <select class="form-select" id="p2f-pages" onchange="document.getElementById('p2f-page-chips').style.display=this.value==='select'?'block':'none'">
+            <option value="all" selected>Alle Seiten</option>
+            <option value="select">Auswahl</option>
+          </select>
+        </div>
+        <div id="p2f-page-chips" style="display:none;margin-top:8px;">
+          <div class="pages-preview" id="p2f-chips-wrap"></div>
+        </div>
+      </div>
+      <div class="tv-section" id="p2f-preview-section" style="display:none">
+        <div class="tv-label">Vorschau</div>
+        <div class="tv-title" id="p2f-preview-title">Seiten</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;" id="p2f-thumbs"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════ SIGNATURE MODAL ════════════ -->
 <div id="sig-modal">
   <div class="sig-box">
@@ -964,17 +1030,6 @@ body.in-editor .theme-toggle{display:none;}
       <button class="sig-btn" onclick="saveSig()">Speichern</button>
       <button class="sig-btn sig-btn-p" onclick="insertSig()">Einfügen</button>
     </div>
-  </div>
-</div>
-
-<!-- ════════════ PAGE PREVIEW MODAL ════════════ -->
-<div id="page-preview-modal" onclick="if(event.target===this)closePagePreview()">
-  <div id="page-preview-box">
-    <div id="page-preview-header">
-      <span id="page-preview-label">Vorschau</span>
-      <button id="page-preview-close" onclick="closePagePreview()">✕ Schließen</button>
-    </div>
-    <canvas id="page-preview-canvas"></canvas>
   </div>
 </div>
 
@@ -1021,7 +1076,7 @@ const TOGGLE_HTML=`<div style="display:flex;gap:2px;background:var(--surface2);b
   });
 })();
 
-const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex','view-jpg2pdf','view-pdf2excel','view-anonymizer'];
+const VIEWS=['view-home','view-editor','view-organizer','view-merge','view-split','view-watermark','view-pagenumbers','view-compress','view-duplex','view-jpg2pdf','view-pdf2excel','view-anonymizer','view-pdf2foto'];
 function showView(id){
   VIEWS.forEach(v=>{
     const el=document.getElementById(v);if(!el)return;
@@ -1084,6 +1139,8 @@ function openTool(tool,subtool){
     showView('view-pdf2excel');
   } else if(tool==='anonymizer'){
     showView('view-anonymizer');
+  } else if(tool==='pdf2foto'){
+    showView('view-pdf2foto');
   }
 }
 
@@ -1499,7 +1556,7 @@ async function downloadMerged(){
 // ════════════════════════════════════════
 // SPLIT
 // ════════════════════════════════════════
-let splitPdfBytes=null,splitTotalPages=0,splitCuts=new Set(),splitPdfDoc=null;
+let splitPdfBytes=null,splitTotalPages=0,splitCuts=new Set();
 
 async function loadSplitPDF(file){
   if(!file)return;
@@ -1518,7 +1575,6 @@ async function loadSplitPDF(file){
 }
 
 async function renderSplitCutUI(doc){
-  splitPdfDoc=doc;
   const ui=document.getElementById('split-cut-ui');ui.innerHTML='';
   ui.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;';
 
@@ -1533,11 +1589,7 @@ async function renderSplitCutUI(doc){
     const pageWrap=document.createElement('div');
     pageWrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;';
     const thumb=document.createElement('div');
-    thumb.style.cssText='border:1px solid var(--border);padding:3px;background:var(--surface);cursor:pointer;transition:border-color .15s;';
-    thumb.title='Seite '+i+' vergrößern';
-    thumb.addEventListener('mouseenter',()=>thumb.style.borderColor='var(--accent)');
-    thumb.addEventListener('mouseleave',()=>thumb.style.borderColor='var(--border)');
-    thumb.addEventListener('click',()=>openPagePreview(capturedI));
+    thumb.style.cssText='border:1px solid var(--border);padding:3px;background:var(--surface);';
     thumb.appendChild(c);
     const label=document.createElement('div');
     label.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--text-muted);letter-spacing:.5px;';
@@ -1581,26 +1633,6 @@ async function renderSplitCutUI(doc){
     }
   }
   updateSplitInfo();
-}
-
-async function openPagePreview(pageNum){
-  if(!splitPdfDoc)return;
-  const modal=document.getElementById('page-preview-modal');
-  const canvas=document.getElementById('page-preview-canvas');
-  document.getElementById('page-preview-label').textContent='Seite '+pageNum+' von '+splitTotalPages;
-  const page=await splitPdfDoc.getPage(pageNum);
-  const vp0=page.getViewport({scale:1});
-  const maxW=(window.innerWidth*0.9)-32;
-  const maxH=(window.innerHeight*0.88)-56;
-  const scale=Math.min(maxW/vp0.width,maxH/vp0.height,2.5);
-  const vp=page.getViewport({scale});
-  canvas.width=vp.width;canvas.height=vp.height;
-  await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-  modal.classList.add('open');
-}
-
-function closePagePreview(){
-  document.getElementById('page-preview-modal').classList.remove('open');
 }
 
 function updateSplitInfo(){
@@ -2590,6 +2622,82 @@ function anonReset(){
   document.getElementById('anon-progress-wrap').style.display='none';
 }
 
+// ════════════════════════════════════════
+// PDF2FOTO
+// ════════════════════════════════════════
+let p2fPdfDoc=null,p2fTotalPages=0,p2fSelPages=new Set(),p2fFileName='';
+const p2fDz=document.getElementById('p2f-dz');
+p2fDz.addEventListener('dragover',e=>{e.preventDefault();p2fDz.classList.add('over');});
+p2fDz.addEventListener('dragleave',()=>p2fDz.classList.remove('over'));
+p2fDz.addEventListener('drop',e=>{e.preventDefault();p2fDz.classList.remove('over');p2fHandleFile(e.dataTransfer.files[0]);});
+async function p2fHandleFile(file){
+  if(!file)return;
+  p2fFileName=file.name.replace(/\.pdf$/i,'');
+  showLoading(true,'PDF wird geladen…');
+  try{
+    const buf=await file.arrayBuffer();
+    p2fPdfDoc=await pdfjsLib.getDocument({data:buf}).promise;
+    p2fTotalPages=p2fPdfDoc.numPages;p2fSelPages=new Set();
+    document.getElementById('p2f-filename').textContent=file.name;
+    document.getElementById('p2f-dz-text').innerHTML='<strong>'+file.name+'</strong><br>'+p2fTotalPages+' Seite'+(p2fTotalPages>1?'n':'')+' geladen';
+    document.getElementById('btn-p2f-dl').disabled=false;
+    document.getElementById('p2f-inp').value='';
+    const wrap=document.getElementById('p2f-chips-wrap');wrap.innerHTML='';
+    for(let i=1;i<=p2fTotalPages;i++){
+      const chip=document.createElement('div');chip.className='page-chip';chip.textContent='S. '+i;
+      const pi=i;chip.onclick=()=>{if(p2fSelPages.has(pi)){p2fSelPages.delete(pi);chip.classList.remove('sel');}else{p2fSelPages.add(pi);chip.classList.add('sel');}};
+      wrap.appendChild(chip);
+    }
+    await p2fRenderThumbs();
+  }catch(e){alert('Fehler: '+e.message);}finally{showLoading(false);}
+}
+async function p2fRenderThumbs(){
+  if(!p2fPdfDoc)return;
+  const thumbsEl=document.getElementById('p2f-thumbs');thumbsEl.innerHTML='';
+  const max=Math.min(p2fTotalPages,12);
+  for(let p=1;p<=max;p++){
+    const page=await p2fPdfDoc.getPage(p);
+    const vp=page.getViewport({scale:0.18});
+    const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+    await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;';
+    const thumb=document.createElement('div');thumb.style.cssText='border:1px solid var(--border);padding:3px;background:var(--surface);';
+    thumb.appendChild(c);
+    const lbl=document.createElement('div');lbl.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:8px;color:var(--text-muted);';lbl.textContent='S. '+p;
+    wrap.appendChild(thumb);wrap.appendChild(lbl);thumbsEl.appendChild(wrap);
+  }
+  if(p2fTotalPages>12){const m=document.createElement('div');m.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--text-muted);padding:8px;';m.textContent='+ '+(p2fTotalPages-12)+' weitere';thumbsEl.appendChild(m);}
+  document.getElementById('p2f-preview-title').textContent=p2fTotalPages+' Seite'+(p2fTotalPages>1?'n':'');
+  document.getElementById('p2f-preview-section').style.display='block';
+}
+async function p2fDownload(){
+  if(!p2fPdfDoc)return;
+  const fmt=document.getElementById('p2f-format').value;
+  const scale=parseFloat(document.getElementById('p2f-dpi').value);
+  const quality=parseInt(document.getElementById('p2f-quality').value)/100;
+  const pagesMode=document.getElementById('p2f-pages').value;
+  const pagesToExport=pagesMode==='select'&&p2fSelPages.size>0?[...p2fSelPages].sort((a,b)=>a-b):Array.from({length:p2fTotalPages},(_,i)=>i+1);
+  if(!pagesToExport.length){toast('Keine Seiten ausgewählt');return;}
+  showLoading(true,'Bilder werden gerendert…');
+  try{
+    const zip=new JSZip();const folder=zip.folder(p2fFileName);
+    const pad=String(p2fTotalPages).length;
+    for(let idx=0;idx<pagesToExport.length;idx++){
+      const pNum=pagesToExport[idx];
+      document.getElementById('loading-text').textContent='Seite '+pNum+' von '+p2fTotalPages+'…';
+      const page=await p2fPdfDoc.getPage(pNum);
+      const vp=page.getViewport({scale});
+      const canvas=document.createElement('canvas');canvas.width=Math.round(vp.width);canvas.height=Math.round(vp.height);
+      const ctx=canvas.getContext('2d');
+      if(fmt==='jpeg'){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);}
+      await page.render({canvasContext:ctx,viewport:vp}).promise;
+      const b64=canvas.toDataURL('image/'+fmt,fmt==='jpeg'?quality:undefined).split(',')[1];
+      folder.file('seite-'+String(pNum).padStart(pad,'0')+'.'+fmt,b64,{base64:true});
+    }
+    triggerDownload(await zip.generateAsync({type:'uint8array'}),p2fFileName+'-bilder.zip');
+    toast(pagesToExport.length+' Bild'+(pagesToExport.length>1?'er':'')+' als ZIP gespeichert');
+  }catch(e){alert('Fehler: '+e.message);console.error(e);}finally{showLoading(false);}
+}
 let sigDrawing=false,sigCtx=null;
 function openSigModal(){document.getElementById('sig-modal').classList.add('open');initSigDraw();loadSavedSigs();}
 function closeSigModal(){document.getElementById('sig-modal').classList.remove('open');}
@@ -2642,7 +2750,6 @@ function hexRgb(hex){
   return{r:parseInt(hex.slice(0,2),16)/255,g:parseInt(hex.slice(2,4),16)/255,b:parseInt(hex.slice(4,6),16)/255};
 }
 function b64ToU8(b64){const bin=atob(b64),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closePagePreview();});
 function triggerDownload(bytes,name){
   const blob=new Blob([bytes],{type:name.endsWith('.zip')?'application/zip':'application/pdf'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
